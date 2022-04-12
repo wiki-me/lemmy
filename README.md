@@ -36,6 +36,8 @@
     <a href="https://github.com/LemmyNet/lemmy/blob/main/RELEASES.md">Releases</a>
     ·
     <a href="https://join-lemmy.org/docs/en/code_of_conduct.html">Code of Conduct</a>
+    ·
+    <a href="https://matrix.to/#/#lemmy-space:matrix.org">Matrix Chat</a>
   </p>
 </p>
 
