@@ -10,6 +10,7 @@ steps:
 
   - name: prepare repo
     image: clux/muslrust:1.61.0
+    user: 1000
     commands:
       - id
       - git fetch --tags
