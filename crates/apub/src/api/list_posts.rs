@@ -1,5 +1,5 @@
 use crate::{
-  api::PerformApub,
+  api::{listing_type_with_default, PerformApub},
   fetcher::resolve_actor_identifier,
   objects::community::ApubCommunity,
 };
@@ -7,11 +7,7 @@ use actix_web::web::Data;
 use lemmy_api_common::{
   context::LemmyContext,
   post::{GetPosts, GetPostsResponse},
-  utils::{
-    check_private_instance,
-    get_local_user_view_from_jwt_opt,
-    listing_type_with_site_default,
-  },
+  utils::{check_private_instance, get_local_user_view_from_jwt_opt, is_mod_or_admin_opt},
 };
 use lemmy_db_schema::{
   source::{community::Community, local_site::LocalSite},
@@ -41,28 +37,32 @@ impl PerformApub for GetPosts {
     let is_logged_in = local_user_view.is_some();
 
     let sort = data.sort;
-    let listing_type = listing_type_with_site_default(data.type_, &local_site)?;
 
     let page = data.page;
     let limit = data.limit;
-    let community_id = data.community_id;
-    let community_actor_id = if let Some(name) = &data.community_name {
-      resolve_actor_identifier::<ApubCommunity, Community>(name, context, true)
+    let community_id = if let Some(name) = &data.community_name {
+      resolve_actor_identifier::<ApubCommunity, Community>(name, context, &None, true)
         .await
         .ok()
-        .map(|c| c.actor_id)
+        .map(|c| c.id)
     } else {
-      None
+      data.community_id
     };
     let saved_only = data.saved_only;
 
-    let mut posts = PostQuery::builder()
+    let listing_type = listing_type_with_default(data.type_, &local_site, community_id)?;
+
+    let is_mod_or_admin =
+      is_mod_or_admin_opt(context.pool(), local_user_view.as_ref(), community_id)
+        .await
+        .is_ok();
+
+    let posts = PostQuery::builder()
       .pool(context.pool())
       .local_user(local_user_view.map(|l| l.local_user).as_ref())
       .listing_type(Some(listing_type))
       .sort(sort)
       .community_id(community_id)
-      .community_actor_id(community_actor_id)
       .saved_only(saved_only)
       .page(page)
       .limit(limit)
