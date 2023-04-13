@@ -1,4 +1,5 @@
 use crate::websocket::chat_server::ChatServer;
+use actix::Addr;
 use lemmy_db_schema::{source::secret::Secret, utils::DbPool};
 use lemmy_utils::{
   rate_limit::RateLimitCell,
@@ -9,17 +10,16 @@ use std::sync::Arc;
 
 pub struct LemmyContext {
   pool: DbPool,
-  chat_server: Arc<ChatServer>,
-  client: ClientWithMiddleware,
-  settings: Settings,
-  secret: Secret,
+  chat_server: Addr<ChatServer>,
+  client: Arc<ClientWithMiddleware>,
+  secret: Arc<Secret>,
   rate_limit_cell: RateLimitCell,
 }
 
 impl LemmyContext {
   pub fn create(
     pool: DbPool,
-    chat_server: Arc<ChatServer>,
+    chat_server: Addr<ChatServer>,
     client: ClientWithMiddleware,
     settings: Settings,
     secret: Secret,
@@ -37,7 +37,7 @@ impl LemmyContext {
   pub fn pool(&self) -> &DbPool {
     &self.pool
   }
-  pub fn chat_server(&self) -> &Arc<ChatServer> {
+  pub fn chat_server(&self) -> &Addr<ChatServer> {
     &self.chat_server
   }
   pub fn client(&self) -> &ClientWithMiddleware {
