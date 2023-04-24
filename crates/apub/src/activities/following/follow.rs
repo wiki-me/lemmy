@@ -17,8 +17,9 @@ use crate::{
   SendActivity,
 };
 use activitypub_federation::{
-  core::object_id::ObjectId,
-  data::Data,
+  config::Data,
+  kinds::activity::FollowType,
+  protocol::verification::verify_urls_match,
   traits::{ActivityHandler, Actor},
 };
 use activitystreams_kinds::activity::FollowType;
@@ -44,8 +45,9 @@ impl Follow {
     context: &LemmyContext,
   ) -> Result<Follow, LemmyError> {
     Ok(Follow {
-      actor: ObjectId::new(actor.actor_id()),
-      object: ObjectId::new(community.actor_id()),
+      actor: actor.id().into(),
+      object: community.id().into(),
+      to: Some([community.id().into()]),
       kind: FollowType::Follow,
       id: generate_activity_id(
         FollowType::Follow,
@@ -101,6 +103,9 @@ impl ActivityHandler for Follow {
       .await?;
     if let UserOrCommunity::Community(c) = object {
       verify_person_in_community(&self.actor, &c, context, request_counter).await?;
+    }
+    if let Some(to) = &self.to {
+      verify_urls_match(to[0].inner(), self.object.inner())?;
     }
     Ok(())
   }

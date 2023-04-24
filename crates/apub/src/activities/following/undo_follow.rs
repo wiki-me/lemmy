@@ -33,7 +33,8 @@ impl UndoFollow {
   ) -> Result<(), LemmyError> {
     let object = Follow::new(actor, community, context)?;
     let undo = UndoFollow {
-      actor: ObjectId::new(actor.actor_id()),
+      actor: actor.id().into(),
+      to: Some([community.id().into()]),
       object,
       kind: UndoType::Undo,
       id: generate_activity_id(
@@ -66,8 +67,11 @@ impl ActivityHandler for UndoFollow {
     request_counter: &mut i32,
   ) -> Result<(), LemmyError> {
     verify_urls_match(self.actor.inner(), self.object.actor.inner())?;
-    verify_person(&self.actor, context, request_counter).await?;
-    self.object.verify(context, request_counter).await?;
+    verify_person(&self.actor, context).await?;
+    self.object.verify(context).await?;
+    if let Some(to) = &self.to {
+      verify_urls_match(to[0].inner(), self.object.object.inner())?;
+    }
     Ok(())
   }
 
