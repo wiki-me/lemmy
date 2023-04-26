@@ -5,7 +5,7 @@ use lemmy_api_common::{
   context::LemmyContext,
   utils::{check_private_instance, get_local_user_view_from_jwt_opt},
 };
-use lemmy_db_schema::{source::local_site::LocalSite, traits::DeleteableOrRemoveable};
+use lemmy_db_schema::source::local_site::LocalSite;
 use lemmy_db_views_actor::community_view::CommunityQuery;
 use lemmy_utils::{error::LemmyError, ConnectionId};
 
@@ -27,14 +27,12 @@ impl PerformCrud for ListCommunities {
 
     check_private_instance(&local_user_view, &local_site)?;
 
-    let person_id = local_user_view.clone().map(|l| l.person.id);
-
     let sort = data.sort;
     let listing_type = data.type_;
     let page = data.page;
     let limit = data.limit;
     let local_user = local_user_view.map(|l| l.local_user);
-    let mut communities = CommunityQuery::builder()
+    let communities = CommunityQuery::builder()
       .pool(context.pool())
       .listing_type(listing_type)
       .sort(sort)
@@ -44,16 +42,6 @@ impl PerformCrud for ListCommunities {
       .build()
       .list()
       .await?;
-
-    // Blank out deleted or removed info for non-logged in users
-    if person_id.is_none() {
-      for cv in communities
-        .iter_mut()
-        .filter(|cv| cv.community.deleted || cv.community.removed)
-      {
-        cv.community = cv.clone().community.blank_out_deleted_or_removed_info();
-      }
-    }
 
     // Return the jwt
     Ok(ListCommunitiesResponse { communities })

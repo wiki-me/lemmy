@@ -23,7 +23,7 @@ use lemmy_db_schema::{
   traits::{Bannable, Crud, Followable},
 };
 use lemmy_db_views_actor::structs::PersonView;
-use lemmy_utils::{error::LemmyError, utils::time::naive_from_unix, ConnectionId};
+use lemmy_utils::{error::LemmyError, utils::naive_from_unix, ConnectionId};
 
 #[async_trait::async_trait(?Send)]
 impl Perform for BanFromCommunity {

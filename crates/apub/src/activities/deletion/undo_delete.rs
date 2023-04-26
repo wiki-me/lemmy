@@ -7,7 +7,8 @@ use crate::{
   objects::{community::ApubCommunity, person::ApubPerson},
   protocol::activities::deletion::{delete::Delete, undo_delete::UndoDelete},
 };
-use activitypub_federation::{config::Data, kinds::activity::UndoType, traits::ActivityHandler};
+use activitypub_federation::{core::object_id::ObjectId, data::Data, traits::ActivityHandler};
+use activitystreams_kinds::activity::UndoType;
 use lemmy_api_common::{context::LemmyContext, websocket::UserOperationCrud};
 use lemmy_db_schema::{
   source::{

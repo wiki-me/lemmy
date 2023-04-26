@@ -2394,7 +2394,6 @@ dependencies = [
  "lemmy_db_views_actor",
  "lemmy_db_views_moderator",
  "lemmy_utils",
- "opentelemetry 0.17.0",
  "percent-encoding",
  "rand 0.8.5",
  "regex",
@@ -2407,7 +2406,6 @@ dependencies = [
  "strum_macros",
  "tokio",
  "tracing",
- "tracing-opentelemetry 0.17.4",
  "url",
  "webpage",
 ]
@@ -2437,6 +2435,7 @@ name = "lemmy_apub"
 version = "0.17.2"
 dependencies = [
  "activitypub_federation",
+ "activitystreams-kinds",
  "actix",
  "actix-rt",
  "actix-web",

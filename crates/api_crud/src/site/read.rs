@@ -89,8 +89,7 @@ impl PerformCrud for GetSite {
 
     let all_languages = Language::read_all(context.pool()).await?;
     let discussion_languages = SiteLanguage::read_local_raw(context.pool()).await?;
-    let taglines = Tagline::get_all(context.pool(), site_view.local_site.id).await?;
-    let custom_emojis = CustomEmojiView::get_all(context.pool(), site_view.local_site.id).await?;
+    let taglines = Some(Tagline::get_all(context.pool(), site_view.local_site.id).await?);
 
     Ok(GetSiteResponse {
       site_view,

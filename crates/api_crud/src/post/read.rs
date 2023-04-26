@@ -3,18 +3,13 @@ use actix_web::web::Data;
 use lemmy_api_common::{
   context::LemmyContext,
   post::{GetPost, GetPostResponse},
-  utils::{
-    check_private_instance,
-    get_local_user_view_from_jwt_opt,
-    is_mod_or_admin_opt,
-    mark_post_as_read,
-  },
+  utils::{check_private_instance, get_local_user_view_from_jwt_opt, mark_post_as_read},
   websocket::handlers::online_users::GetPostUsersOnline,
 };
 use lemmy_db_schema::{
   aggregates::structs::{PersonPostAggregates, PersonPostAggregatesForm},
   source::{comment::Comment, local_site::LocalSite},
-  traits::{Crud, DeleteableOrRemoveable},
+  traits::Crud,
 };
 use lemmy_db_views::structs::PostView;
 use lemmy_db_views_actor::structs::{CommunityModeratorView, CommunityView};
@@ -52,7 +47,7 @@ impl PerformCrud for GetPost {
       Err(LemmyError::from_message("couldnt_find_post"))?
     };
 
-    let mut post_view = PostView::read(context.pool(), post_id, person_id)
+    let post_view = PostView::read(context.pool(), post_id, person_id)
       .await
       .map_err(|e| LemmyError::from_error_message(e, "couldnt_find_post"))?;
 
@@ -64,7 +59,7 @@ impl PerformCrud for GetPost {
 
     // Necessary for the sidebar subscribed
     let community_id = post_view.community.id;
-    let mut community_view = CommunityView::read(context.pool(), community_id, person_id)
+    let community_view = CommunityView::read(context.pool(), community_id, person_id)
       .await
       .map_err(|e| LemmyError::from_error_message(e, "couldnt_find_community"))?;
 
@@ -81,17 +76,6 @@ impl PerformCrud for GetPost {
       PersonPostAggregates::upsert(context.pool(), &person_post_agg_form)
         .await
         .map_err(|e| LemmyError::from_error_message(e, "couldnt_find_post"))?;
-    }
-
-    // Blank out deleted or removed info for non-logged in users
-    if person_id.is_none() {
-      if post_view.post.deleted || post_view.post.removed {
-        post_view.post = post_view.post.blank_out_deleted_or_removed_info();
-      }
-
-      if community_view.community.deleted || community_view.community.removed {
-        community_view.community = community_view.community.blank_out_deleted_or_removed_info();
-      }
     }
 
     let moderators = CommunityModeratorView::for_community(context.pool(), community_id).await?;

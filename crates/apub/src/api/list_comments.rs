@@ -11,7 +11,7 @@ use lemmy_api_common::{
 };
 use lemmy_db_schema::{
   source::{comment::Comment, community::Community, local_site::LocalSite},
-  traits::{Crud, DeleteableOrRemoveable},
+  traits::Crud,
 };
 use lemmy_db_views::comment_view::CommentQuery;
 use lemmy_utils::{error::LemmyError, ConnectionId};
@@ -34,7 +34,7 @@ impl PerformApub for GetComments {
     check_private_instance(&local_user_view, &local_site)?;
 
     let community_id = if let Some(name) = &data.community_name {
-      resolve_actor_identifier::<ApubCommunity, Community>(name, context, &None, true)
+      resolve_actor_identifier::<ApubCommunity, Community>(name, context, true)
         .await
         .ok()
         .map(|c| c.id)
@@ -76,14 +76,6 @@ impl PerformApub for GetComments {
       .list()
       .await
       .map_err(|e| LemmyError::from_error_message(e, "couldnt_get_comments"))?;
-
-    // Blank out deleted or removed info
-    for cv in comments
-      .iter_mut()
-      .filter(|cv| cv.comment.deleted || cv.comment.removed)
-    {
-      cv.comment = cv.clone().comment.blank_out_deleted_or_removed_info();
-    }
 
     Ok(GetCommentsResponse { comments })
   }

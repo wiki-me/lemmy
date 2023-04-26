@@ -11,7 +11,6 @@ use lemmy_api_common::{
 };
 use lemmy_db_schema::{
   source::{community::Community, local_site::LocalSite},
-  traits::DeleteableOrRemoveable,
   utils::post_to_comment_sort_type,
   SearchType,
 };
@@ -55,7 +54,7 @@ impl PerformApub for Search {
     let listing_type = data.listing_type;
     let search_type = data.type_.unwrap_or(SearchType::All);
     let community_id = if let Some(name) = &data.community_name {
-      resolve_actor_identifier::<ApubCommunity, Community>(name, context, &local_user_view, false)
+      resolve_actor_identifier::<ApubCommunity, Community>(name, context, false)
         .await
         .ok()
         .map(|c| c.id)
@@ -204,30 +203,6 @@ impl PerformApub for Search {
           .await?;
       }
     };
-
-    // Blank out deleted or removed info for non logged in users
-    if person_id.is_none() {
-      for cv in communities
-        .iter_mut()
-        .filter(|cv| cv.community.deleted || cv.community.removed)
-      {
-        cv.community = cv.clone().community.blank_out_deleted_or_removed_info();
-      }
-
-      for pv in posts
-        .iter_mut()
-        .filter(|p| p.post.deleted || p.post.removed)
-      {
-        pv.post = pv.clone().post.blank_out_deleted_or_removed_info();
-      }
-
-      for cv in comments
-        .iter_mut()
-        .filter(|cv| cv.comment.deleted || cv.comment.removed)
-      {
-        cv.comment = cv.clone().comment.blank_out_deleted_or_removed_info();
-      }
-    }
 
     // Return the jwt
     Ok(SearchResponse {

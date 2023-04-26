@@ -1,5 +1,5 @@
-use crate::objects::person::ApubPerson;
-use activitypub_federation::{config::Data, fetch::object_id::ObjectId};
+use crate::{local_instance, objects::person::ApubPerson};
+use activitypub_federation::core::object_id::ObjectId;
 use lemmy_api_common::context::LemmyContext;
 use lemmy_db_schema::{
   newtypes::LocalUserId,

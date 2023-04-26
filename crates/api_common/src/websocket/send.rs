@@ -26,12 +26,12 @@ use lemmy_db_schema::{
     person_mention::{PersonMention, PersonMentionInsertForm},
     post::Post,
   },
-  traits::{Crud, DeleteableOrRemoveable},
+  traits::Crud,
   SubscribedType,
 };
 use lemmy_db_views::structs::{CommentView, LocalUserView, PostView, PrivateMessageView};
 use lemmy_db_views_actor::structs::CommunityView;
-use lemmy_utils::{error::LemmyError, utils::mention::MentionData, ConnectionId};
+use lemmy_utils::{error::LemmyError, utils::MentionData, ConnectionId};
 use serde::Serialize;
 
 impl LemmyContext {
@@ -46,7 +46,7 @@ impl LemmyContext {
   where
     OP: ToString,
   {
-    let post_view = PostView::read(self.pool(), post_id, person_id, Some(true)).await?;
+    let post_view = PostView::read(self.pool(), post_id, person_id).await?;
 
     let res = PostResponse { post_view };
 
@@ -175,8 +175,7 @@ impl LemmyContext {
   where
     OP: ToString,
   {
-    let community_view =
-      CommunityView::read(self.pool(), community_id, person_id, Some(true)).await?;
+    let community_view = CommunityView::read(self.pool(), community_id, person_id).await?;
     let discussion_languages = CommunityLanguage::read(self.pool(), community_id).await?;
 
     let mut res = CommunityResponse {

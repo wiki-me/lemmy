@@ -3,7 +3,12 @@ use actix_web::web::Data;
 use lemmy_api_common::{
   comment::{CommentResponse, EditComment},
   context::LemmyContext,
-  utils::{check_community_ban, get_local_user_view_from_jwt, local_site_to_slur_regex},
+  utils::{
+    check_community_ban,
+    get_local_user_view_from_jwt,
+    is_mod_or_admin,
+    local_site_to_slur_regex,
+  },
   websocket::UserOperationCrud,
 };
 use lemmy_db_schema::{
